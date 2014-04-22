@@ -85,7 +85,7 @@ display a calendar in the popup?
       			zoom : 17
       		});      	
 
-        var racks = new FeatureLayer("http://esrirideshare.esri.com:6080/arcgis/rest/services/ESRIRideshare/Rideshare_BikeRackCount/FeatureServer/0", {outFields: ["*"]});
+        var racks = new FeatureLayer("http://gis.cityofredlands.org/arcgis/rest/services/BikeRackCount/FeatureServer/0", {outFields: ["*"]});
         
         racks.on("click", updateCount);
         map.addLayer(racks);
@@ -138,7 +138,7 @@ display a calendar in the popup?
           };
           console.log(newCount);         
           
-          var countTable = new FeatureLayer("http://esrirideshare.esri.com:6080/arcgis/rest/services/ESRIRideshare/Rideshare_BikeRackCount/FeatureServer/1");
+          var countTable = new FeatureLayer("http://gis.cityofredlands.org/arcgis/rest/services/BikeRackCount/FeatureServer/1");
           
           countTable.applyEdits([newCount], null, null, 
             function(addResults) {
