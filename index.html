@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=10">
+    <!--The viewport meta tag is used to improve the presentation and behavior of the samples 
+      on iOS devices-->
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>bicycle rack usage counter</title>
+    <link rel="stylesheet" href="http://js.arcgis.com/3.8/js/dojo/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="http://js.arcgis.com/3.8/js/esri/css/esri.css">
+    <style>
+      html, body {
+        height: 100%;
+        width: 100%;
+        margin: 0; 
+        padding: 0;
+        overflow:hidden;
+      }      
+      #map{
+        padding:0;
+        height: 100%;
+        width: 100%;
+      }
+      #LocateButton {
+        position: absolute;
+        top: 95px;
+        left: 20px;
+        z-index: 50;
+      }      
+      #info {
+        bottom: 20px;
+        color: #444;
+        height: auto;
+        font-family: arial;
+        left: 20px;
+        margin: 5px;
+        padding: 10px;
+        position: absolute;
+        text-align: left;
+        width: 275px;
+        z-index: 40;		
+      }
+      .esriSimpleSlider {
+        -webkit-user-select: all;
+        -moz-user-select: all;
+        -ms-user-select: all !important;  <!--wtf!-->		
+        user-select: all;
+      }
+    </style>
+    <script src="http://js.arcgis.com/3.8/"></script>
+    <script>	  
+/*
+to do:
+make it look nicer on mobile (bootstrap-map-js?)
+add dropdown so people dont have to type the count in manually
+add a better success indication than an 'alert'
+
+optional:
+move services to public arcgis server machine
+add legend
+query existing rows and display most recent count (possibly in a dgrid)
+display a calendar in the popup?
+*/
+      
+      require([
+      		"esri/map", "esri/dijit/BasemapGallery", "esri/layers/FeatureLayer",
+            "esri/dijit/LocateButton", "esri/config",     		
+            "dojo/parser", "dojo/dom", "dojo/number",
+            
+      		"dijit/layout/ContentPane", "dijit/layout/ContentPane", "dojo/domReady!"
+      	], function (
+      		Map, BasemapGallery, FeatureLayer,
+      		LocateButton, esriConfig,
+            parser, dom, number) {
+
+      	var map;
+      	parser.parse();
+
+        esriConfig.defaults.io.proxyUrl = "proxy.ashx";
+        
+      	map = new Map("map", {
+      			basemap : "osm",
+      			center : [-117.1960, 34.0571],
+      			zoom : 17
+      		});      	
+
+        var racks = new FeatureLayer("http://esrirideshare.esri.com:6080/arcgis/rest/services/ESRIRideshare/Rideshare_BikeRackCount/FeatureServer/0", {outFields: ["*"]});
+        
+        racks.on("click", updateCount);
+        map.addLayer(racks);
+        
+      	var basemapGallery = new BasemapGallery({
+      			showArcGISBasemaps : true,
+      			map : map
+      		}, "basemapGallery");
+
+      	basemapGallery.startup();
+        
+        geoLocate = new LocateButton({
+            map: map
+        }, "LocateButton");
+        geoLocate.startup();
+        
+        /*geoLocate.on("load", function() {
+            geoLocate.locate();
+        });*/
+        
+        function updateCount(evt) {        	
+        	graphicAttributes = evt.graphic.attributes;
+        	title = "Bike rack: " + graphicAttributes.BikeRackID;
+        	
+            content = "your name: "
+                + "<br><input type='text' id='who' name='who' value=''>"
+        		+ "<br><br>number of bikes at rack: "
+                + "<br><input type='text' id='num' name='num' value=''>"
+        		+ "<br><br>any comments?"
+                + "<br><textarea id='comments' name='comments'>nope.</textarea>"
+                + "<br><br><button name='button' onclick='javascript:addRackCount(" + graphicAttributes.BikeRackID + ");'>submit</button>"              
+                //+ "<br><b>date of observation: </b>"
+            
+            
+            map.infoWindow.setTitle(title);
+            map.infoWindow.setContent(content);    
+            map.infoWindow.show(evt.screenPoint, map.getInfoWindowAnchor(evt.screenPoint));
+        }       
+                
+        addRackCount = function(rackId) {          
+          var newCount = {
+            attributes: {
+              RackID: rackId,
+              NumberOfBikesParked: dom.byId("num").value,
+              DateOfObservation: new Date().getTime(),
+              ObserverName: dom.byId("who").value,
+              Comments: dom.byId("comments").value,
+              
+            }
+          };
+          console.log(newCount);         
+          
+          var countTable = new FeatureLayer("http://esrirideshare.esri.com:6080/arcgis/rest/services/ESRIRideshare/Rideshare_BikeRackCount/FeatureServer/1");
+          
+          countTable.applyEdits([newCount], null, null, 
+            function(addResults) {
+              map.infoWindow.hide();
+              alert("your count has been submitted successfully!");
+            }, function(err){
+              alert("oh no! " + err);
+            }
+          );
+        }
+        
+      });
+    </script>
+  </head>
+  
+  <body class="claro">
+    <div id="map">        
+        <div id="LocateButton"></div>
+        <div id="info" class="esriSimpleSlider">
+        <p><b>Bike Rack Usage Counter</b></p>
+        <p>Click on a bike rack to reveal a popup. Fill in the information and click 'submit' to send your observation to the server.</p>
+            <span id="center"></span>
+        </div>		
+        <div style="position:absolute; right:20px; top:10px; z-Index:999;">
+          <div data-dojo-type="dijit/TitlePane" 
+               data-dojo-props="title:'Switch Basemap', closable:false,  open:false">
+            <div data-dojo-type="dijit/layout/ContentPane" style="width:160px; height:600px; overflow:auto;">
+            <div id="basemapGallery" ></div></div>
+          </div>
+        </div>
+    </div>
+  </body>
+</html>
