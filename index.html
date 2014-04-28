@@ -64,15 +64,15 @@ display a calendar in the popup?
 */
       
       require([
-      		"esri/map", "esri/dijit/BasemapGallery", "esri/layers/FeatureLayer",
-            "esri/dijit/LocateButton", "esri/config",     		
-            "dojo/parser", "dojo/dom", "dojo/number",
+      	"esri/map", "esri/dijit/BasemapGallery", "esri/layers/FeatureLayer",
+        "esri/dijit/LocateButton", "esri/config",     		
+        "dojo/parser", "dojo/dom", "dojo/number",
             
-      		"dijit/layout/ContentPane", "dijit/layout/ContentPane", "dojo/domReady!"
+      	"dijit/layout/ContentPane", "dijit/layout/ContentPane", "dojo/domReady!"
       	], function (
       		Map, BasemapGallery, FeatureLayer,
       		LocateButton, esriConfig,
-            parser, dom, number) {
+          parser, dom, number) {
 
       	var map;
       	parser.parse();
@@ -80,10 +80,10 @@ display a calendar in the popup?
         esriConfig.defaults.io.proxyUrl = "proxy.ashx";
         
       	map = new Map("map", {
-      			basemap : "osm",
-      			center : [-117.1960, 34.0571],
-      			zoom : 17
-      		});      	
+      		basemap : "osm",
+      		center : [-117.1960, 34.0571],
+      	  zoom : 17
+      	});      	
 
         var racks = new FeatureLayer("http://gis.cityofredlands.org/arcgis/rest/services/BikeRackCount/FeatureServer/0", {outFields: ["*"]});
         
@@ -91,9 +91,9 @@ display a calendar in the popup?
         map.addLayer(racks);
         
       	var basemapGallery = new BasemapGallery({
-      			showArcGISBasemaps : true,
-      			map : map
-      		}, "basemapGallery");
+      		showArcGISBasemaps : true,
+      		map : map
+      	}, "basemapGallery");
 
       	basemapGallery.startup();
         
@@ -113,15 +113,14 @@ display a calendar in the popup?
         	graphicAttributes = evt.graphic.attributes;
         	title = "Bike rack: " + graphicAttributes.BikeRackID;
         	
-            content = "your name: "
-                + "<br><input type='text' id='who' name='who' value=''>"
+          content = "your name: "
+            + "<br><input type='text' id='who' name='who' value=''>"
         		+ "<br><br>number of bikes at rack: "
-                + "<br><input type='text' id='num' name='num' value=''>"
+            + "<br><input type='text' id='num' name='num' value=''>"
         		+ "<br><br>any comments?"
-                + "<br><textarea id='comments' name='comments'>nope.</textarea>"
-                + "<br><br><button name='button' onclick='javascript:addRackCount(" + graphicAttributes.BikeRackID + ");'>submit</button>"              
-                //+ "<br><b>date of observation: </b>"
-            
+            + "<br><textarea id='comments' name='comments'>nope.</textarea>"
+            + "<br><br><button name='button' onclick='javascript:addRackCount(" + graphicAttributes.BikeRackID + ");'>submit</button>"              
+            //+ "<br><b>date of observation: </b>"
             
             map.infoWindow.setTitle(title);
             map.infoWindow.setContent(content);    
@@ -152,7 +151,6 @@ display a calendar in the popup?
             }
           );
         }
-        
       });
     </script>
   </head>
