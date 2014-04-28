@@ -106,7 +106,10 @@ display a calendar in the popup?
             geoLocate.locate();
         });*/
         
-        function updateCount(evt) {        	
+        function updateCount(evt) {
+          //make sure that the rack selected is centered and zoomed in, so that info window is centered
+          map.centerAndZoom(evt.graphic.geometry, 19); 
+
         	graphicAttributes = evt.graphic.attributes;
         	title = "Bike rack: " + graphicAttributes.BikeRackID;
         	
