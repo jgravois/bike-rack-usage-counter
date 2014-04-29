@@ -35,7 +35,7 @@
         font-family: arial;
         left: 20px;
         margin: 5px;
-        padding: 10px;
+        padding: 5px;
         position: absolute;
         text-align: left;
         width: 275px;
@@ -47,22 +47,39 @@
         -ms-user-select: all !important;  <!--wtf!-->		
         user-select: all;
       }
-    </style>
+    </style>    
+  </head>  
+  <body class="claro">
+    <div id="map">        
+        <div id="LocateButton"></div>
+        <div id="info" class="esriSimpleSlider">
+        <p><b>Bike Rack Usage Counter</b><br>
+        Click on a bike rack to reveal a popup. Fill in the information and click 'submit' to send in your observation.</p>
+            <span id="center"></span>
+        </div>		
+        <div style="position:absolute; right:20px; top:10px; z-Index:999;">
+          <div data-dojo-type="dijit/TitlePane" 
+               data-dojo-props="title:'Switch Basemap', closable:false,  open:false">
+            <div data-dojo-type="dijit/layout/ContentPane" style="width:160px; height:600px; overflow:auto;">
+            <div id="basemapGallery" ></div></div>
+          </div>
+        </div>
+    </div>
     <script src="http://js.arcgis.com/3.8/"></script>
     <script>	  
 /*
 to do:
 make it look nicer on mobile (bootstrap-map-js?)
-add dropdown so people dont have to type the count in manually
+(ie: use mobile popup that fills the entire screen to submit counts)
+add dropdown so people dont have to type the count in manually?
 add a better success indication than an 'alert'
+make title pane collapse-able or close-able
 
 optional:
-move services to public arcgis server machine
-add legend
+add legend?
 query existing rows and display most recent count (possibly in a dgrid)
-display a calendar in the popup?
-*/
-      
+display a calendar in the popup? (so people can submit historical counts)
+*/      
       require([
       		"esri/map", "esri/dijit/BasemapGallery", "esri/layers/FeatureLayer",
             "esri/dijit/LocateButton", "esri/config",     		
@@ -85,6 +102,8 @@ display a calendar in the popup?
       			zoom : 17
       		});      	
 
+        map.infoWindow.resize(220,300);        
+        
         var racks = new FeatureLayer("http://gis.cityofredlands.org/arcgis/rest/services/BikeRackCount/FeatureServer/0", {outFields: ["*"]});
         
         racks.on("click", updateCount);
@@ -101,28 +120,30 @@ display a calendar in the popup?
             map: map
         }, "LocateButton");
         geoLocate.startup();
-        
-        /*geoLocate.on("load", function() {
-            geoLocate.locate();
-        });*/
-        
+                        
         function updateCount(evt) {        	
-        	graphicAttributes = evt.graphic.attributes;
+        	map.infoWindow.hide();
+            centerDeferred = map.centerAt(evt.graphic.geometry);          
+          
+            graphicAttributes = evt.graphic.attributes;
         	title = "Bike rack: " + graphicAttributes.BikeRackID;
         	
             content = "your name: "
                 + "<br><input type='text' id='who' name='who' value=''>"
-        		+ "<br><br>number of bikes at rack: "
+        		+ "<br>number of bikes at rack: "
                 + "<br><input type='text' id='num' name='num' value=''>"
-        		+ "<br><br>any comments?"
+        		+ "<br>any comments?"
                 + "<br><textarea id='comments' name='comments'>nope.</textarea>"
-                + "<br><br><button name='button' onclick='javascript:addRackCount(" + graphicAttributes.BikeRackID + ");'>submit</button>"              
-                //+ "<br><b>date of observation: </b>"
-            
+                + "<br><button name='button' onclick='javascript:addRackCount(" + graphicAttributes.BikeRackID + ");'>submit</button>"              
+                //+ "<br><b>date of observation: </b>"            
             
             map.infoWindow.setTitle(title);
             map.infoWindow.setContent(content);    
-            map.infoWindow.show(evt.screenPoint, map.getInfoWindowAnchor(evt.screenPoint));
+            
+            //make sure that the rack selected is centered and zoomed in, so that info window is centered
+            centerDeferred.then(function() {
+               map.infoWindow.show(map.extent.getCenter(), map.getInfoWindowAnchor(evt.screenPoint));
+            });            
         }       
                 
         addRackCount = function(rackId) {          
@@ -132,18 +153,16 @@ display a calendar in the popup?
               NumberOfBikesParked: dom.byId("num").value,
               DateOfObservation: new Date().getTime(),
               ObserverName: dom.byId("who").value,
-              Comments: dom.byId("comments").value,
-              
+              Comments: dom.byId("comments").value,              
             }
           };
-          console.log(newCount);         
           
           var countTable = new FeatureLayer("http://gis.cityofredlands.org/arcgis/rest/services/BikeRackCount/FeatureServer/1");
           
           countTable.applyEdits([newCount], null, null, 
             function(addResults) {
               map.infoWindow.hide();
-              alert("your count has been submitted successfully!");
+              dom.byId("info").innerHTML = "<p><b>Bike Rack Usage Counter</b><br>your count has been submitted successfully.  thanks!</p>";
             }, function(err){
               alert("oh no! " + err);
             }
@@ -152,23 +171,5 @@ display a calendar in the popup?
         
       });
     </script>
-  </head>
-  
-  <body class="claro">
-    <div id="map">        
-        <div id="LocateButton"></div>
-        <div id="info" class="esriSimpleSlider">
-        <p><b>Bike Rack Usage Counter</b></p>
-        <p>Click on a bike rack to reveal a popup. Fill in the information and click 'submit' to send your observation to the server.</p>
-            <span id="center"></span>
-        </div>		
-        <div style="position:absolute; right:20px; top:10px; z-Index:999;">
-          <div data-dojo-type="dijit/TitlePane" 
-               data-dojo-props="title:'Switch Basemap', closable:false,  open:false">
-            <div data-dojo-type="dijit/layout/ContentPane" style="width:160px; height:600px; overflow:auto;">
-            <div id="basemapGallery" ></div></div>
-          </div>
-        </div>
-    </div>
   </body>
 </html>
