@@ -89,7 +89,7 @@ display a calendar in the popup? (so people can submit historical counts)
       	], function (
       		Map, BasemapGallery, FeatureLayer,
       		LocateButton, esriConfig,
-            parser, dom, number) {
+          parser, dom, number) {
 
       	var map;
       	parser.parse();
@@ -110,9 +110,9 @@ display a calendar in the popup? (so people can submit historical counts)
         map.addLayer(racks);
         
       	var basemapGallery = new BasemapGallery({
-      			showArcGISBasemaps : true,
-      			map : map
-      		}, "basemapGallery");
+      		showArcGISBasemaps : true,
+      		map : map
+      	}, "basemapGallery");
 
       	basemapGallery.startup();
         
