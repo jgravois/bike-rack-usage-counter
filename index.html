@@ -65,12 +65,20 @@
           </div>
         </div>
     </div>
-    <script src="http://js.arcgis.com/3.8/"></script>
+    <script>
+    var dojoConfig = {
+      //set to true for debugging
+      isDebug: false,
+      useDeferredInstrumentation: false
+    };
+    </script>
+    <script src="http://js.arcgis.com/3.9/"></script>
     <script>	  
 /*
 to do:
 make it look nicer on mobile (bootstrap-map-js?)
 (ie: use mobile popup that fills the entire screen to submit counts)
+https://developers.arcgis.com/javascript/jssamples/widget_mobilepopup.html
 add dropdown so people dont have to type the count in manually?
 add a better success indication than an 'alert'
 make title pane collapse-able or close-able
@@ -89,11 +97,10 @@ display a calendar in the popup? (so people can submit historical counts)
       	], function (
       		Map, BasemapGallery, FeatureLayer,
       		LocateButton, esriConfig,
-          parser, dom, number) {
+            parser, dom, number) {
 
       	var map;
       	parser.parse();
-
         esriConfig.defaults.io.proxyUrl = "proxy.ashx";
         
       	map = new Map("map", {
@@ -110,9 +117,9 @@ display a calendar in the popup? (so people can submit historical counts)
         map.addLayer(racks);
         
       	var basemapGallery = new BasemapGallery({
-      		showArcGISBasemaps : true,
-      		map : map
-      	}, "basemapGallery");
+      			showArcGISBasemaps : true,
+      			map : map
+      		}, "basemapGallery");
 
       	basemapGallery.startup();
         
@@ -123,8 +130,9 @@ display a calendar in the popup? (so people can submit historical counts)
                         
         function updateCount(evt) {        	
         	map.infoWindow.hide();
-            centerDeferred = map.centerAt(evt.graphic.geometry);          
-          
+            //centerDeferred = map.centerAt(evt.graphic.geometry); 
+            centerDeferred = map.centerAndZoom(evt.graphic.geometry, 18);
+            
             graphicAttributes = evt.graphic.attributes;
         	title = "Bike rack: " + graphicAttributes.BikeRackID;
         	
@@ -134,7 +142,7 @@ display a calendar in the popup? (so people can submit historical counts)
                 + "<br><input type='text' id='num' name='num' value=''>"
         		+ "<br>any comments?"
                 + "<br><textarea id='comments' name='comments'>nope.</textarea>"
-                + "<br><button name='button' onclick='javascript:addRackCount(" + graphicAttributes.BikeRackID + ");'>submit</button>"              
+                + "<br><button name='button' onclick='javascript:addRackCount(" + graphicAttributes.BikeRackID + ");'>submit</button>"
                 //+ "<br><b>date of observation: </b>"            
             
             map.infoWindow.setTitle(title);
@@ -143,6 +151,7 @@ display a calendar in the popup? (so people can submit historical counts)
             //make sure that the rack selected is centered and zoomed in, so that info window is centered
             centerDeferred.then(function() {
                map.infoWindow.show(map.extent.getCenter(), map.getInfoWindowAnchor(evt.screenPoint));
+               dom.byId('who').focus();
             });            
         }       
                 
